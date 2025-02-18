@@ -1,0 +1,33 @@
+version: 1.0
+
+### Manual（任意で設定） ###
+# GUI
+default_win_ratio: 0.8 # スクリーンに対するデフォルトの画面の大きさ（全画面表示でない場合）
+font: meiryo
+# Voice Recognition
+mic_double: false # マイクを2つ使うか（独立成分分析を行うか）
+ica_type: 1 # 音源分離のタイプ（マイク2つの時のみ有効）．0: ICA, 1: FastICA
+# Create XML file
+editmode: 1 # 0:長いノートから順に, 1:文節区切り
+splitmode: 1 # 0:文節, 1:アクセント句
+force_enbed_with_la: true # 入力テキスト長が元の歌詞より短い場合に、"ら"で埋めるかどうか
+use_continuous_vowel: true # 直前のモーラと同じ母音（子音を含まない）があったとき、その母音を歌詞に採用するかどうか
+# Synthesis
+genre:
+  - "アニソン風"
+  - "ロック"
+  - "バラード"
+
+# for debug
+start_stage: 0 # スタート画面．0: Home, 1: Recording, 2: Select Genre, 3: Play Audio
+
+### Auto（自動で変更．複数ファイル間でのデータ共有用） ###
+InOutSetup:
+  - 4
+  - 4
+color_pre: Blue
+extracted_text: "こちらで本当に本当にどうでしょうか"
+lyric_name: kochiradehoNtoonihoN
+recognition: true
+recording: false
+score_no: '01'

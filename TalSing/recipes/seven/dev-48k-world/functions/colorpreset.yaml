@@ -1,0 +1,36 @@
+Green:
+- '#2CC985' # main color
+- '#0C955A' # hover color
+- '#edffdb' # background color
+Blue:
+- '#3B8ED0'
+- '#36719F'
+- '#eaffff'
+Red:
+- '#b22222'
+- '#800000'
+- '#ffefef'
+Orenge:
+- '#ffa500'
+- '#d2691e'
+- '#fff7ef'
+Purple:
+- '#9932cc'
+- '#4b0082'
+- '#f7efff'
+Sakura:
+- '#ff99cc'
+- '#cc7aa3'
+- '#ffefff'
+Sea:
+- '#006888'
+- '#367487'
+- '#eaf4ff'
+Chocolate:
+- '#6c3524'
+- '#331911'
+- '#e8dbd6'
+Mono:
+- '#141414'
+- '#747474'
+- '#f0f0f0'
