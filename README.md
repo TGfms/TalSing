@@ -44,7 +44,7 @@
 - YouTube: https://www.youtube.com/@TaigaMusicLab31  
 
 
-[docs-overview]: [https://taiga-music-lab.com/](https://taiga-music-lab.com/%e6%9b%bf%e3%81%88%e6%ad%8c%e5%90%88%e6%88%90%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0%e3%80%8ctalsing%e3%80%8d%e3%81%ab%e9%96%a2%e3%81%99%e3%82%8b%e3%81%82%e3%82%8c%e3%81%93%e3%82%8c%e3%82%92%e3%81%be/)
+[docs-overview]: https://taiga-music-lab.com/%e6%9b%bf%e3%81%88%e6%ad%8c%e5%90%88%e6%88%90%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0%e3%80%8ctalsing%e3%80%8d%e3%81%ab%e9%96%a2%e3%81%99%e3%82%8b%e3%81%82%e3%82%8c%e3%81%93%e3%82%8c%e3%82%92%e3%81%be/
 [docs-using]: https://taiga-music-lab.com/
 [nnsvs]: https://nnsvs.github.io/
 [learned-model]: https://taiga-music-lab.com/
