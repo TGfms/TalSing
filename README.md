@@ -45,6 +45,6 @@
 
 
 [docs-overview]: https://taiga-music-lab.com/%e6%9b%bf%e3%81%88%e6%ad%8c%e5%90%88%e6%88%90%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0%e3%80%8ctalsing%e3%80%8d%e3%81%ab%e9%96%a2%e3%81%99%e3%82%8b%e3%81%82%e3%82%8c%e3%81%93%e3%82%8c%e3%82%92%e3%81%be/
-[docs-using]: https://taiga-music-lab.com/
+[docs-using]: https://taiga-music-lab.com/%e3%80%90%e5%ae%9f%e8%b7%b5%e7%b7%a8%e3%80%91%e9%96%8b%e7%99%ba%e3%82%92%e6%83%b3%e5%ae%9a%e3%81%97%e3%81%9ftalsing%e3%81%ae%e4%bd%bf%e3%81%84%e6%96%b9%e8%a7%a3%e8%aa%ac/
 [nnsvs]: https://nnsvs.github.io/
 [learned-model]: https://taiga-music-lab.com/
