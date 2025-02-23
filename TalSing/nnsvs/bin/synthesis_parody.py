@@ -191,7 +191,7 @@ def my_app(config: DictConfig) -> None:
         wav=wav,
         sample_rate=config.synthesis.sample_rate,
         dtype=np.int16,
-        peak_norm=False,
+        peak_norm=True,
         loudness_norm=False,
     )
     out_wav_path = join(out_dir, f"{config.file_name}_{config.refer_no}.wav")
