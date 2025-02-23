@@ -5,6 +5,7 @@ import pyopenjtalk
 import jaconv
 from janome.tokenizer import Tokenizer
 import MeCab
+import ipadic
 import jamorasep
 import sys
 import os
@@ -406,7 +407,7 @@ def get_moralist(text):
 
 # 入力文章を文節で区切ったリストに変換
 def split_bunsetsu(text):
-    m = MeCab.Tagger('')
+    m = MeCab.Tagger(ipadic.MECAB_ARGS)
     m_result = m.parse(text).splitlines()
     m_result = m_result[:-1] #最後の1行は不要な行なので除く
     break_pos = ['名詞','動詞','接頭詞','副詞','感動詞','形容詞','形容動詞','連体詞'] #文節の切れ目を検出するための品詞リスト
