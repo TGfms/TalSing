@@ -1,0 +1,15 @@
+# Directory
+__pycache__/
+TalSing/recipes/seven/**/dump/
+TalSing/recipes/seven/**/exp/
+TalSing/recipes/seven/**/outputs/
+
+# Extension
+TalSing/recipes/**/data/acoustic/label_phone_score/*.lab
+TalSing/recipes/**/forSynthesis/xml_paro/*.xml
+TalSing/recipes/**/forSynthesis/result/*.wav
+
+# Specific file(s)
+.DS_Store
+TalSing/recipes/seven/dev-48k-world/rec_raw_single.wav
+

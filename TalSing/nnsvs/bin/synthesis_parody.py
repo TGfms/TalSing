@@ -38,6 +38,7 @@ def my_app(config: DictConfig) -> None:
     checkpoint = torch.load(
         to_absolute_path(config.timelag.checkpoint),
         map_location=lambda storage, loc: storage,
+        weights_only=False  # after PyTorch 2.6
     )
     timelag_model.load_state_dict(checkpoint["state_dict"])
     timelag_in_scaler = joblib.load(to_absolute_path(config.timelag.in_scaler_path))
@@ -50,6 +51,7 @@ def my_app(config: DictConfig) -> None:
     checkpoint = torch.load(
         to_absolute_path(config.duration.checkpoint),
         map_location=lambda storage, loc: storage,
+        weights_only=False  # after PyTorch 2.6
     )
     duration_model.load_state_dict(checkpoint["state_dict"])
     duration_in_scaler = joblib.load(to_absolute_path(config.duration.in_scaler_path))
@@ -62,6 +64,7 @@ def my_app(config: DictConfig) -> None:
     checkpoint = torch.load(
         to_absolute_path(config.acoustic.checkpoint),
         map_location=lambda storage, loc: storage,
+        weights_only=False  # after PyTorch 2.6
     )
     acoustic_model.load_state_dict(checkpoint["state_dict"])
     acoustic_in_scaler = joblib.load(to_absolute_path(config.acoustic.in_scaler_path))
@@ -188,7 +191,7 @@ def my_app(config: DictConfig) -> None:
         wav=wav,
         sample_rate=config.synthesis.sample_rate,
         dtype=np.int16,
-        peak_norm=False,
+        peak_norm=True,
         loudness_norm=False,
     )
     out_wav_path = join(out_dir, f"{config.file_name}_{config.refer_no}.wav")
