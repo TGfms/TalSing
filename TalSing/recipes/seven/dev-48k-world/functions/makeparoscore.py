@@ -21,7 +21,7 @@ yaml.preserve_quotes = True  # クォートの保持
 yaml.indent(mapping=2, sequence=4, offset=2)  # インデント調整
 
 # load config
-with open('functions/config.yaml', 'r') as f:
+with open('functions/config.yaml', 'r', encoding="utf-8") as f:
     data = yaml.load(f)
     editmode = data["editmode"]
     splitmode = data["splitmode"]

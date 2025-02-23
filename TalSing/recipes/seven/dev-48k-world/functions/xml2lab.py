@@ -17,7 +17,7 @@ assert sinsy.loadScoreFromMusicXML(input_filename)
 is_mono = False
 labels = sinsy.createLabelData(is_mono, 1, 1).getData()
 
-with open(output_filepath, "w") as f:
+with open(output_filepath, "w", encoding="utf-8") as f:
     f.write("\n".join(labels))
 
 sinsy.clearScore()

@@ -52,7 +52,7 @@ def main():
     # plotdata = np.zeros(length)
     plotdata = []
 
-    with open('functions/config.yaml', 'r') as f:
+    with open('functions/config.yaml', 'r', encoding="utf-8") as f:
         flag = yaml.load(f)
 
         # デバイスのリストを取得し、デフォルトデバイスを設定
@@ -72,7 +72,7 @@ def main():
     rec_flag_copy = True
     with stream:
         while rec_flag_copy: # recordingがTrueであるかぎりstreamが開かれ続ける
-            with open('functions/config.yaml', 'r') as f:
+            with open('functions/config.yaml', 'r', encoding="utf-8") as f:
                 rec_flag_copy = yaml.load(f)['recording']
 
 def save_wav():
