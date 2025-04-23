@@ -20,7 +20,7 @@ yaml.preserve_quotes = True  # クォートの保持
 yaml.indent(mapping=2, sequence=4, offset=2)  # インデント調整
 
 # load config
-with open('functions/config.yaml', 'r') as f:
+with open('functions/config.yaml', 'r', encoding="utf-8") as f:
     data = yaml.load(f)
     version = data["version"]
     mic_double = data["mic_double"]
@@ -204,24 +204,24 @@ class SettingsWindow(ctk.CTkToplevel):
 
     def updateInDev(self, value):
         dev_id = self.dev_list.index(value)
-        with open('functions/config.yaml', 'r') as f:
+        with open('functions/config.yaml', 'r', encoding="utf-8") as f:
             data = yaml.load(f)
         data['InOutSetup'][0] = dev_id
-        with open('functions/config.yaml', 'w') as f:
+        with open('functions/config.yaml', 'w', encoding="utf-8") as f:
             yaml.dump(data, f)
 
     def updateOutDev(self, value):
         dev_id = self.dev_list.index(value)
-        with open('functions/config.yaml', 'r') as f:
+        with open('functions/config.yaml', 'r', encoding="utf-8") as f:
             data = yaml.load(f)
         data['InOutSetup'][1] = dev_id
-        with open('functions/config.yaml', 'w') as f:
+        with open('functions/config.yaml', 'w', encoding="utf-8") as f:
             yaml.dump(data, f)
 
     def updateColor(self, color):
         # カラー更新
         updateConfig('color_pre', color)
-        with open('functions/colorpreset.yaml', 'r') as f:
+        with open('functions/colorpreset.yaml', 'r', encoding="utf-8") as f:
             data = yaml.load(f)
             self.color_main = data[color][0]
             self.color_hover = data[color][1]
@@ -229,7 +229,7 @@ class SettingsWindow(ctk.CTkToplevel):
 
     def close_win(self):
         # 入出力反映
-        with open('functions/config.yaml', 'r') as f:
+        with open('functions/config.yaml', 'r', encoding="utf-8") as f:
             data = yaml.load(f)
             sd.default.device = data['InOutSetup']
         """ ウィンドウを閉じる """
@@ -408,7 +408,7 @@ class SelectFrame(ctk.CTkFrame):
             self.referState = False
 
     def playRefer(self):
-        with open('functions/config.yaml', 'r') as f:
+        with open('functions/config.yaml', 'r', encoding="utf-8") as f:
             data = yaml.load(f)
             no = data['score_no']
             self.sound = SoundLoader.load(f'{current_dir}/forSynthesis/wav_refer/{no}.wav')
@@ -422,7 +422,7 @@ class SelectFrame(ctk.CTkFrame):
             print('stop')
 
     def check_finRecognition(self):
-        with open('functions/config.yaml', 'r') as f:
+        with open('functions/config.yaml', 'r', encoding="utf-8") as f:
             data = yaml.load(f)
             if data['recognition'] == True:
                 # ボタンのステータスをnormalに
@@ -495,7 +495,7 @@ class ProcessFrame(ctk.CTkFrame): # 合成処理中画面に関するクラス
     def run1(self):
         print("Start shell processing.")
         print(f"Running shell thread : {threading.current_thread().name}")
-        with open('functions/config.yaml', 'r') as f:
+        with open('functions/config.yaml', 'r', encoding="utf-8") as f:
             config = yaml.load(f)
             no = config['score_no']
             if start_stage != 0:
@@ -566,7 +566,7 @@ class OutputFrame(ctk.CTkFrame): # 合成音声再生画面に関するクラス
             wav1 = 'forSynthesis/result/forDebug/geNzainagareteiruoNg_01.wav'
             wav2 = 'forSynthesis/wav_refer/forDebug/01.wav'
         else:
-            with open('functions/config.yaml', 'r') as f:
+            with open('functions/config.yaml', 'r', encoding="utf-8") as f:
                 data = yaml.load(f)
                 wav1 = join(f"forSynthesis/result", f"{data['lyric_name']}_{data['score_no']}.wav")
                 wav2 = join(f"forSynthesis/wav_refer", f"{data['score_no']}.wav")
@@ -587,10 +587,10 @@ def updateConfig(key, value):
 
 # カラー取得関数
 def getColors():
-    with open('functions/config.yaml', 'r') as f:
+    with open('functions/config.yaml', 'r', encoding="utf-8") as f:
         data = yaml.load(f)
         color_pre = data['color_pre']
-    with open('functions/colorpreset.yaml', 'r') as f:
+    with open('functions/colorpreset.yaml', 'r', encoding="utf-8") as f:
         data = yaml.load(f)
         color_main = data[color_pre][0]
         color_hover = data[color_pre][1]

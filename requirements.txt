@@ -17,10 +17,12 @@ pysinsy
 Pillow
 pyroomacoustics
 jaconv
-janomne
-MeCab
+janome
+mecab-python3
+ipadic
 jamorasep
 marine
 nnmnkwii
 nnsvs
 h5py
+ipdb
