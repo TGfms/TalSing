@@ -1,0 +1,13 @@
+numpy==1.26.4
+cython
+nnmnkwii
+librosa
+nnsvs
+h5py
+tqdm
+parallel_wavegan
+ipdb
+mlflow
+hydra-optuna-sweeper
+torch==2.3.0
+ipadic
