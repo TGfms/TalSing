@@ -35,7 +35,9 @@ small_list = ["ャ", "ュ", "ョ", "ァ", "ィ", "ゥ", "ェ", "ォ", "ッ", "�
 type_list = ["64th", "32nd", "16th", "eighth", "quarter", "half", "whole"]
 oct_scale = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 phoneme_dict = open(join(current_dir, 'phoneme_dict.json'), 'r')
-phoneme_list = json.load(phoneme_dict)
+# phoneme_list = json.load(phoneme_dict, encoding="utf-8")
+with open(join(current_dir, 'phoneme_dict.json'), 'r', encoding='utf-8') as phoneme_dict:
+    phoneme_list = json.load(phoneme_dict)
 vowels = ["a", "i", "u", "e", "o", "N", "cl"]
 
 xml_path = sys.argv[1]

@@ -4,6 +4,7 @@ import pysinsy
 import sys
 import os
 import yaml
+from ipdb import set_trace as ipst
 
 sinsy = pysinsy.Sinsy()
 

@@ -3,6 +3,7 @@ import time
 import threading
 import os
 from os.path import join
+import platform
 import subprocess
 from threading import Event, Thread
 from ipdb import set_trace as ipst
@@ -10,31 +11,59 @@ from kivy.core.audio import SoundLoader
 from faster_whisper import WhisperModel
 import sounddevice as sd
 from PIL import Image, ImageTk
+import numpy as np
 
 import functions.rec2text as r2t # 音声収録処理の中身（マイク2本の場合=独立成分分析を行う場合）
 import functions.rec2text_single as r2t_s # 音声収録処理の中身（マイク1本の場合）
 import functions.playtwowaves as playww # 音源再生処理の中身
 from ruamel.yaml import YAML
+
 yaml = YAML()  
 yaml.preserve_quotes = True  # クォートの保持
 yaml.indent(mapping=2, sequence=4, offset=2)  # インデント調整
 
-# load config
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+
+# load config（TalSing）
 with open('functions/config.yaml', 'r', encoding="utf-8") as f:
     data = yaml.load(f)
     version = data["version"]
+    OS = data['OS']
+    python_path = data['python_exe']
     mic_double = data["mic_double"]
     default_win_ratio = data["default_win_ratio"]
     FONT_TYPE = data["font"]
     genre = data["genre"]
+    compOnOff = data["compOnOff"]
     color_pre = data['color_pre']
     # for debug
     start_stage = data["start_stage"]
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+# load config (NNSVS)
+with open("config.yaml") as f:
+    config = yaml.load(f)
+# 環境変数としてセット（全て文字列に変換しておくと安全）
+for key, value in config.items():
+    os.environ[key] = str(value)
 
-scriptpath = f'{current_dir}/run.sh'
+# 使用OS取得
+if OS == None:
+    pf = platform.system()
+    if pf == "Windows":
+        OS = "windows"
+    elif pf == "Darwin":
+        OS = "mac"
+    elif pf == "Linux":
+        OS = "linux"
+    else:
+        AssertionError, 'OSが取得できません。configファイルで指定してください。'
+print(f'使用OS: {OS}')
+
+if OS in ['mac', 'linux']:
+    scriptpath = f'{current_dir}/run.sh'
+else:
+    scriptpath = f'{current_dir}/run_sh.py'
 
 if start_stage < 2:
     model = WhisperModel("large-v3", device="cpu", compute_type="float32")
@@ -45,7 +74,7 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         # 全画面表示
-        self.attributes("-fullscreen", True)
+        self.attributes("-fullscreen", False)
         # 画面サイズ取得
         self.window_width, self.window_height = self.winfo_screenwidth(), self.winfo_screenheight()
         # デフォルト画面サイズ
@@ -166,18 +195,23 @@ class SettingsWindow(ctk.CTkToplevel):
 
         self.parent = parent
         self.transient(parent)
-        self.grab_set()
 
         # 親ウィンドウにウィンドウが開いていることを通知
         self.parent.settings_window = self
         
         self.setup_form()
+        self.grab_set()
 
     def setup_form(self):
+        # 音声収録用のスレッド準備
+        self.running = True
+        threading.Thread(target=self.audio_loop, daemon=True).start()
+
         # タイトルラベル
         self.label_title = ctk.CTkLabel(self, text="-  設　定  -", font=(FONT_TYPE, self.win_width/15), height=self.win_height/10)
-        self.label_title.grid(row=0, column=0, columnspan=2, padx=20, pady=10, sticky="wen")
+        self.label_title.grid(row=0, column=0, columnspan=3, padx=20, pady=10, sticky="wen")
         # Audio
+        self.refer_audio = f"{current_dir}/forSynthesis/wav_refer/forDebug/frog.wav"
         self.label_audio = ctk.CTkLabel(self, text="Audio", font=(FONT_TYPE, self.win_width/20, "bold"))
         self.label_audio.grid(row=1, column=0, padx=20, pady=10, sticky="wen")
         self.label_audioinput = ctk.CTkLabel(self, text="Input", font=(FONT_TYPE, self.win_width/20))
@@ -185,11 +219,16 @@ class SettingsWindow(ctk.CTkToplevel):
         self.box_audioinput = ctk.CTkComboBox(self, values=[indev for indev in self.indev_list], width=self.win_width/3, height=50, font=(FONT_TYPE, 30), dropdown_font=(FONT_TYPE, 25), command=self.updateInDev)
         self.box_audioinput.grid(row=2, column=1, padx=20, pady=10, sticky="wen")
         self.box_audioinput.set(self.device_list_raw[sd.default.device[0]]['name'])
+        self.lamp_inputaudio = ctk.CTkLabel(self, text="", width=self.win_width/13, height=self.win_width/13, corner_radius=50)
+        self.lamp_inputaudio.grid(row=2, column=2, padx=20, pady=10, sticky="wen")
         self.label_audiooutput = ctk.CTkLabel(self, text="Output", font=(FONT_TYPE, self.win_width/20))
         self.label_audiooutput.grid(row=3, column=0, padx=20, pady=10, sticky="wen")
         self.box_audiooutput = ctk.CTkComboBox(self, values=[indev for indev in self.outdev_list], width=self.win_width/4, height=50, font=(FONT_TYPE, 30), dropdown_font=(FONT_TYPE, 25), command=self.updateOutDev)
         self.box_audiooutput.grid(row=3, column=1, padx=20, pady=10, sticky="wen")
         self.box_audiooutput.set(self.device_list_raw[sd.default.device[1]]['name'])
+        self.referState = False # 試聴音源再生中か否か
+        self.button_playrefer = ctk.CTkButton(self, text='▶', font=(FONT_TYPE, self.win_width/25), fg_color=self.color_main, hover_color=self.color_hover, height=self.win_width/15, width=self.win_width/15, command=self.updateReferButton)
+        self.button_playrefer.grid(row=3, column=2, padx=20, pady=10, sticky="wen")
         # Design
         self.label_design = ctk.CTkLabel(self, text="Design", font=(FONT_TYPE, self.win_width/20, "bold"))
         self.label_design.grid(row=4, column=0, padx=20, pady=10, sticky="wen")
@@ -198,9 +237,12 @@ class SettingsWindow(ctk.CTkToplevel):
         self.box_color = ctk.CTkComboBox(self, values=[indev for indev in self.colors], width=self.win_width/3, height=50, font=(FONT_TYPE, 30), dropdown_font=(FONT_TYPE, 25), command=self.updateColor)
         self.box_color.grid(row=5, column=1, padx=20, pady=10, sticky="wen")
         self.box_color.set(self.color_pre)
+        # Applyボタン
+        self.apply_button = ctk.CTkButton(self, text="Apply", font=(FONT_TYPE, self.win_width/25), fg_color=self.color_main, hover_color=self.color_hover, command=self.apply_change)
+        self.apply_button.grid(row=6, column=0, columnspan=3, padx=20, pady=10, sticky="wes")
         # Closeボタン
         self.close_button = ctk.CTkButton(self, text="Close", font=(FONT_TYPE, self.win_width/25), fg_color=self.color_main, hover_color=self.color_hover, command=self.close_win)
-        self.close_button.grid(row=6, column=0, columnspan=2, padx=20, pady=10, sticky="wes")
+        self.close_button.grid(row=7, column=0, columnspan=3, padx=20, pady=10, sticky="wes")
 
     def updateInDev(self, value):
         dev_id = self.dev_list.index(value)
@@ -218,6 +260,46 @@ class SettingsWindow(ctk.CTkToplevel):
         with open('functions/config.yaml', 'w', encoding="utf-8") as f:
             yaml.dump(data, f)
 
+    def audio_loop(self):
+        while self.running:
+            volume = self.get_volume()
+            brightness = min(int(volume * 205), 205)+50  # 音量を0〜255にマッピング
+            # 明るさに応じた緑色のカラーコードを生成
+            color = f'#{brightness:02x}{0:02x}{0:02x}'  # RとBが変化、Gは最大
+            self.lamp_inputaudio.configure(fg_color=color)
+            time.sleep(0.05)
+
+    def get_volume(self):
+        try:
+            data = sd.rec(int(44100 * 0.05), samplerate=44100, channels=1, dtype='float32')
+            sd.wait()
+            rms = np.sqrt(np.mean(data**2))
+            return min(rms * 30, 1.0)  # 正規化
+        except Exception as e:
+            print(e)
+            return 0.0
+
+    def updateReferButton(self):
+        if self.referState == False:
+            self.button_playrefer.configure(text='◻')
+            self.playRefer()
+            self.referState = True
+        else:
+            self.button_playrefer.configure(text='▶')
+            self.stopRefer()
+            self.referState = False
+
+    def playRefer(self):
+        self.sound = SoundLoader.load(self.refer_audio)
+        if self.referState == False:
+            self.sound.play()
+            print('play')
+
+    def stopRefer(self):
+        if self.referState == True:
+            self.sound.stop()
+            print('stop')
+
     def updateColor(self, color):
         # カラー更新
         updateConfig('color_pre', color)
@@ -227,12 +309,21 @@ class SettingsWindow(ctk.CTkToplevel):
             self.color_hover = data[color][1]
         self.close_button.configure(fg_color=self.color_main, hover_color=self.color_hover)
 
+    def apply_change(self):
+        # 入出力反映
+        with open('functions/config.yaml', 'r', encoding="utf-8") as f:
+            data = yaml.load(f)
+            sd.default.device = data['InOutSetup']
+        """ ウィンドウを閉じる """
+        print(sd.query_devices())
+
     def close_win(self):
         # 入出力反映
         with open('functions/config.yaml', 'r', encoding="utf-8") as f:
             data = yaml.load(f)
             sd.default.device = data['InOutSetup']
         """ ウィンドウを閉じる """
+        print(sd.query_devices())
         app.home_frame.destroy()
         app.show_home()
         self.parent.settings_window = None  # 変数をリセット
@@ -379,7 +470,7 @@ class SelectFrame(ctk.CTkFrame):
         self.combobox.set('- 選択してください -')
         # 音源試聴ボタン
         self.referState = False
-        self.referButton = ctk.CTkButton(self, text='▶︎', font=(FONT_TYPE, self.scr_width/25), fg_color=self.color_main, hover_color=self.color_hover, height=100, command=self.updateReferButton)
+        self.referButton = ctk.CTkButton(self, text='▶', font=(FONT_TYPE, self.scr_width/25), fg_color=self.color_main, hover_color=self.color_hover, height=100, command=self.updateReferButton)
         self.referButton.grid(row=1, column=1, padx=50, pady = 50, sticky='w')
 
         self.grid_columnconfigure((0, 1), weight=1)
@@ -399,11 +490,11 @@ class SelectFrame(ctk.CTkFrame):
 
     def updateReferButton(self):
         if self.referState == False:
-            self.referButton.configure(text='◻️')
+            self.referButton.configure(text='◻')
             self.playRefer()
             self.referState = True
         else:
-            self.referButton.configure(text='▶︎')
+            self.referButton.configure(text='▶')
             self.stopRefer()
             self.referState = False
 
@@ -456,6 +547,9 @@ class ProcessFrame(ctk.CTkFrame): # 合成処理中画面に関するクラス
         self.label.grid(row=0, column=0, sticky='wens')
         # 画像準備
         self.img_logo = Image.open("images/logo.png").convert("RGBA")  # 画像ファイルを指定
+        scale = 1.0
+        w, h = self.img_logo.size
+        self.img_logo = self.img_logo.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
         self.angle = 0  # 回転角度
         # 画像ラベルを作成
         self.image_label = ctk.CTkLabel(self, text="")
@@ -489,7 +583,7 @@ class ProcessFrame(ctk.CTkFrame): # 合成処理中画面に関するクラス
         self.image_label.configure(image=self.tk_image)  # ラベルを更新
         # run1が完了していないなら50ms後に再びrotate_image()
         if self.runscript_event.is_set() != True: 
-            self.after(50, self.rotate_img)
+            self.after(10, self.rotate_img)
 
     # 替え歌合成処理部
     def run1(self):
@@ -503,8 +597,19 @@ class ProcessFrame(ctk.CTkFrame): # 合成処理中画面に関するクラス
             else:
                 text = config['extracted_text'] # yamlに保存された、録音部で認識されたテキストを取得
         # 別スレッドでシェルスクリプトを実行
-        subprocess.run([scriptpath, '--stage', '100', '--stop-stage', '100', no, text])
-
+        env = os.environ.copy()
+        env["REFER_NUMBER"] = no
+        env["REFER_TEXT"] = text
+        env["VIRTUAL_PYTHON_PATH"] = python_path
+        env['RUN_SCRIPT_DIR'] = os.path.dirname(scriptpath)
+        env['COMP_ONOFF'] = compOnOff
+        if OS in ['mac', 'linux']:
+            subprocess.run([scriptpath, '--stage', '100', '--stop-stage', '100', no, text], env=env)
+        elif OS == 'windows':
+            # subprocess.run([python_path, '../../_common/spsvs/synthesis_parody_sh.py'], env=env)
+            subprocess.run([python_path, scriptpath], env=env)
+        else:
+            AssertionError, "['mac', 'windows', 'linux']の中から現在使用しているOSをconfigファイルで指定してください。"
         self.runscript_event.set() # 合成処理が終了したらフラグをTrueに
         print('Finish runscript.')
 
@@ -528,10 +633,10 @@ class OutputFrame(ctk.CTkFrame): # 合成音声再生画面に関するクラス
     def setup_form(self):
         # ラベル
         self.grid_columnconfigure(0, weight=1)
-        self.label = ctk.CTkLabel(self, text="合成完了！ボタンを押して再生してみよう！", font=(FONT_TYPE, self.scr_width/20))
+        self.label = ctk.CTkLabel(self, text="合成完了！ボタンを押して再生してみよう！", font=(FONT_TYPE, self.scr_width/23))
         self.label.grid(row=0, column=0, pady=10, sticky="nsew")
         # 再生ボタン
-        self.playsound_button = ctk.CTkButton(self, text="PLAY", font=(FONT_TYPE, self.scr_width/20), fg_color=self.color_main, hover_color=self.color_hover, width=self.scr_height/3, height=self.scr_height/3, command=self.play_button_func)
+        self.playsound_button = ctk.CTkButton(self, text="PLAY", font=(FONT_TYPE, self.scr_width/24), fg_color=self.color_main, hover_color=self.color_hover, width=self.scr_height/3, height=self.scr_height/3, command=self.play_button_func)
         self.playsound_button.grid(row=1, column=0, padx=10, pady=30, sticky="s")
 
     def label_update(self):
@@ -563,8 +668,9 @@ class OutputFrame(ctk.CTkFrame): # 合成音声再生画面に関するクラス
     # 音源再生部（合成歌声と伴奏の2音源）
     def play_audio(self):
         if start_stage == 3: # デバッグ用
-            wav1 = 'forSynthesis/result/forDebug/geNzainagareteiruoNg_01.wav'
-            wav2 = 'forSynthesis/wav_refer/forDebug/01.wav'
+            scriptdir = os.path.dirname(scriptpath)
+            wav1 = join(scriptdir, 'forSynthesis/result/forDebug/geNzainagareteiruoNg_01.wav')
+            wav2 = join(scriptdir, 'forSynthesis/wav_refer/forDebug/01.wav')
         else:
             with open('functions/config.yaml', 'r', encoding="utf-8") as f:
                 data = yaml.load(f)

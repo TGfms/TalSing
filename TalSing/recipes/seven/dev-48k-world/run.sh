@@ -14,6 +14,8 @@ function xrun () {
 
 refer=$5
 refer_tex=$6
+# title=$5
+# ratio=$6
 
 script_dir=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)
 NNSVS_ROOT=$script_dir/../../../
@@ -29,10 +31,10 @@ eval $(parse_yaml "./config.yaml" "")
 train_set="train_no_dev"
 dev_set="dev"
 eval_set="eval"
-gene_set="gene"
+gen_set="gen"
 datasets=($train_set $dev_set $eval_set)
 testsets=($dev_set $eval_set)
-genesets=$gene_set
+genesets=$gen_set
 
 dumpdir=dump
 

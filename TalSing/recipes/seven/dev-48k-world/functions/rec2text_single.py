@@ -5,7 +5,8 @@ import soundfile as sf
 import scipy.signal as sp
 from scipy.io.wavfile import write, read
 from sklearn.decomposition import FastICA
-from faster_whisper import WhisperModel
+from speechbrain.pretrained import SpectralMaskEnhancement
+import torchaudio
 import sys
 from pathlib import Path
 import alkana
@@ -85,6 +86,18 @@ def save_wav():
 def separate(model):
     print('Start Text Recognition.')
     voice = "rec_raw_single.wav"
+    voice_removed = "rec_removed_single.wav"
+
+    # ノイズ除去
+    enhancer = SpectralMaskEnhancement.from_hparams(
+        source="speechbrain/metricgan-plus-voicebank",
+        savedir="pretrained_models/metricgan-plus-voicebank"
+    )
+
+    # ノイズ除去の実行
+    enhanced = enhancer.enhance_file(voice)
+    # 出力ファイルの保存（16bit PCM）
+    torchaudio.save(voice_removed, enhanced.unsqueeze(0), 16000)
 
     # voice recognition
     segments, info = model.transcribe(voice, beam_size=5, language="ja") # 現状は日本語で固定
