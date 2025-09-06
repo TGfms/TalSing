@@ -1,7 +1,5 @@
 # Directory
 __pycache__/
-TalSing/recipes/seven/**/dump/
-TalSing/recipes/seven/**/exp/
 TalSing/recipes/seven/**/outputs/
 
 # Extension
