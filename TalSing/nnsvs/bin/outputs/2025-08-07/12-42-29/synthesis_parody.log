@@ -1,0 +1,59 @@
+[2025-08-07 12:42:29,465][nnsvs][INFO] - timelag:
+  checkpoint: exp\seven/timelag_vp_mdn/latest.pth
+  in_scaler_path: dump\seven\norm/in_timelag_scaler.joblib
+  out_scaler_path: dump\seven\norm/out_timelag_scaler.joblib
+  model_yaml: exp\seven/timelag_vp_mdn/model.yaml
+  allowed_range:
+  - -20
+  - 20
+  allowed_range_rest:
+  - -40
+  - 40
+  force_clip_input_features: true
+duration:
+  checkpoint: exp\seven/duration_vp_mdn/latest.pth
+  in_scaler_path: dump\seven\norm/in_duration_scaler.joblib
+  out_scaler_path: dump\seven\norm/out_duration_scaler.joblib
+  model_yaml: exp\seven/duration_vp_mdn/model.yaml
+  force_clip_input_features: true
+acoustic:
+  checkpoint: exp\seven/acoustic_nnsvs_world_multi_ar_f0/latest.pth
+  in_scaler_path: dump\seven\norm/in_acoustic_scaler.joblib
+  out_scaler_path: dump\seven\norm/out_acoustic_scaler.joblib
+  model_yaml: exp\seven/acoustic_nnsvs_world_multi_ar_f0/model.yaml
+  force_clip_input_features: true
+vocoder:
+  checkpoint: None
+  in_scaler_path: null
+  model_yaml: null
+synthesis:
+  sample_rate: 48000
+  frame_period: 5
+  qst: ../../_common/hed/jp_dev_latest.hed
+  log_f0_conditioning: true
+  feature_type: world
+  use_world_codec: true
+  ground_truth_duration: false
+  post_filter_type: gv
+  vocoder_type: world
+  trajectory_smoothing: true
+  trajectory_smoothing_cutoff: 50
+  trajectory_smoothing_cutoff_f0: 20
+  vuv_threshold: 0.3
+  pre_f0_shift_in_cent: 0
+  post_f0_shift_in_cent: 0
+  vibrato_scale: 1.0
+  force_fix_vuv: false
+  subphone_features: coarse_coding
+  relative_f0: false
+verbose: 100
+device: cuda
+utt_list: null
+in_dir: data/acoustic/label_phone_score/
+out_dir: C:\research\yamamoto\talsing\talsing\recipes\seven\dev-48k-world\forSynthesis/result
+file_name: meejidaigakunomasUko
+refer_no: '02'
+xml_dir: null
+swingRatio: null
+
+[2025-08-07 12:42:29,928][nnsvs][INFO] - Processes 121 utterances...
